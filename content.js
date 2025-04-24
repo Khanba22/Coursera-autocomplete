@@ -138,40 +138,46 @@ function formatQuestionsForPrompt(dataArray) {
 // Create the prompt for the AI
 function createAIPrompt(promptArray) {
   return `
-      You are a helpful assistant that solves a quiz.
-      You will be given a quiz in the following JSON format:
+    You are a smart and reliable assistant helping to solve a quiz.
+    
+    You will be given a list of questions in the following format:
+    {
+      "question": "Sample question text",
+      "type": "text" | "radio" | "checkbox",
+      "options": [] // Only provided for 'radio' or 'checkbox' types
+    }
+    
+    Your task is to return a JSON array of answers in the following format:
+    [
       {
-          "question": "What is your name?",
-          "type": "text",
-          "options": []
+        "question": "What is your name?",
+        "type": "text",
+        "answer": "John Doe"
+      },
+      {
+        "question": "What is the capital of France?",
+        "type": "radio",
+        "answer": "Paris"
+      },
+      {
+        "question": "Which of the following are programming languages? (Select two)",
+        "type": "checkbox",
+        "answer": ["JavaScript", "Python"]
       }
-      You will be given a question and the type of input it is.
-      You will also be given the options for the question.
-      You will return a JSON object with the answer to the question.
-      The answer will be in the following format:
-      [
-          {
-              "question": "What is your name?",
-              "type": "text",
-              "answer": "John Doe"
-          },
-          {
-              "question": "What is your favorite color?",
-              "type": "radio",
-              "answer": "Blue"
-          },
-          ...
-      ]
-      If the question is a radio button, the type will be "radio".
-      If the question is a checkbox, the type will be "checkbox".
-      If the question is a text input, the type will be "text".
-      The answer will be the text of the option that you want to select.
-      If the question is a text input, the answer will be the text that you want to input.
-      If the question is a radio button, the answer will be the text of the option that you want to select.
-      If the question is a checkbox, the answer will be an array of the texts of the options that you want to select.
-  
-      Here is the quiz:
-      ${promptArray.map((question) => JSON.stringify(question)).join("\n")}
+    ]
+    
+    Answering instructions:
+    - If the **type** is **text**, provide a relevant short answer as a string.
+    - If the **type** is **radio**, select only **one** correct option from the list.
+    - If the **type** is **checkbox**:
+      - Carefully read the question to identify how many options to choose. This will be stated in the question text (e.g., “(Select two)”).
+      - Select **only that number** of the **most appropriate and correct** options.
+      - Do **not** select more or fewer than the number indicated.
+    
+    Return only the JSON array of answers—do not include any explanations or extra text.
+    
+    Here is the quiz:
+    ${promptArray.map((question) => JSON.stringify(question)).join("\n")}
     `;
 }
 
