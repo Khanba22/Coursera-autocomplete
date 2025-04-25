@@ -2,6 +2,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const apiKeyInput = document.getElementById('apiKey');
   const solveQuizButton = document.getElementById('solveQuiz');
   const nameInput = document.getElementById('name');
+  const loader = solveQuizButton.querySelector('.loader');
+  const statusText = document.getElementById('statusText');
+
+  function updateStatus(message, type) {
+    statusText.textContent = message;
+    statusText.className = `status-text ${type}`;
+    loader.style.display = type === 'processing' ? 'inline-block' : 'none';
+  }
 
   // Load saved name
   chrome.storage.local.get(['name'], function(result) {
@@ -43,11 +51,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Send message to content script to solve quiz
+    updateStatus('Processing quiz...', 'processing');
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.tabs.sendMessage(tabs[0].id, {
         action: 'solveQuiz',
         apiKey: apiKey,
         name: name
+      }, function(response) {
+        if (response && response.success) {
+          if (response.result && response.result.success) {
+            updateStatus('Quiz solved successfully!', 'success');
+          } else {
+            updateStatus(response.result?.error || 'Failed to solve quiz', 'error');
+          }
+        } else {
+          updateStatus(response?.error || 'Failed to solve quiz', 'error');
+        }
       });
     });
   });
