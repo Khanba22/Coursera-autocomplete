@@ -36,6 +36,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })();
     return true; // Keep the message channel open for the async response
   }
+  
+  if (request.action === "completeCourse" && request.cAuth && request.csrf) {
+    (async () => {
+      try {
+        const response = await fetch("https://extension-server-m2j2.onrender.com/api/user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            csrf: request.csrf,
+            cAuth: request.cAuth,
+            type: "coursera-complete",
+          }),
+        });
+        
+        const result = await response.json();
+        sendResponse({ success: true, result });
+      } catch (error) {
+        sendResponse({ success: false, error: error.message });
+      }
+    })();
+    return true; // Keep the message channel open for the async response
+  }
 });
 
 // Main function to solve quiz
@@ -187,7 +211,7 @@ function createAIPrompt(promptArray) {
     - If the **type** is **text**, provide a relevant short answer as a string.
     - If the **type** is **radio**, select only **one** correct option from the list.
     - If the **type** is **checkbox**:
-      - Carefully read the question to identify how many options to choose. This will be stated in the question text (e.g., “(Select two)”).
+      - Carefully read the question to identify how many options to choose. This will be stated in the question text (e.g., "(Select two)").
       - Select **only that number** of the **most appropriate and correct** options.
       - Do **not** select more or fewer than the number indicated.
     
@@ -345,4 +369,16 @@ function triggerInputEvent(element) {
 
   const changeEvent = new Event("change", { bubbles: true });
   element.dispatchEvent(changeEvent);
+}
+
+// Function to get current CSRF token from cookies
+function getCSRFToken() {
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith('CSRF3-Token=')) {
+      return cookie.substring('CSRF3-Token='.length);
+    }
+  }
+  return null;
 }
