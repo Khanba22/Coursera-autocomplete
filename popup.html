@@ -3,6 +3,24 @@
   <head>
     <title>Coursera Solver</title>
     <style>
+       .loader {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top: 2px solid transparent;
+        display: inline-block;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
       body {
         width: 300px;
         padding: 15px;
@@ -111,6 +129,23 @@
         </style>
         Solve Quiz
       </button>
+
+      <div class="input-group">
+        <label for="cAuth">API Key:</label>
+        <tooltip>
+          In Order to Get CAuth Token, Login to Coursera and Open Dev Tools using F12, Go to Application Tab and Copy the value of "cAuth"
+          Cookie and Paste it here.
+          <br>
+          <br>
+        </tooltip>
+        <input type="password" id="cAuth" placeholder="Enter your CAuth Token key" />
+      </div>
+
+      <button class="submit-button" id="completeCourse">
+        <div class="loader" style="display: none;"></div>
+        Complete Course
+      </button>
+
       <div id="statusText" class="status-text"></div>
     </div>
     <script src="popup.js"></script>

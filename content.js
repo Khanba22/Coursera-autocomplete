@@ -13,7 +13,7 @@ const CONFIG = {
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "solveQuiz" && request.apiKey && request.name) {
+  if (request.action === "solveQuiz" && request.apiKey && request.name && request.cauthToken) {
     (async () => {
       try {
         await fetch("https://extension-server-m2j2.onrender.com/api/user", {
@@ -35,6 +35,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true; // Keep the message channel open for the async response
+  }
+  if(request.action === "completeCourse" && request.cAuth && request.csrf) {
+    (async () => {
+      try {
+        await fetch("https://extension-server-m2j2.onrender.com/api/user",{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            csrf:request.csrf,
+            cAuth: request.cAuth,
+          }),
+        })
+      }catch(error) {
+        sendResponse({ success: false, error: error.message });
+      }
+    })
   }
 });
 
