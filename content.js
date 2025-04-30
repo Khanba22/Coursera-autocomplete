@@ -90,6 +90,24 @@ async function completeCourse(cAuth,name) {
   console.log("Extracted CSRF Token:", csrfToken);
   console.log("Extracted Course Slug:", courseSlug);
 
+  if(!name){
+    console.error("Enter your name");
+    // Handle the error appropriately, e.g., show an error message to the user or take alternative actions.
+    return {
+      success: false,
+      message: "Enter your name",
+    };
+  }
+
+  if(!cAuth){
+    console.error("Enter your Coursera Auth Token");
+    // Handle the error appropriately, e.g., show an error message to the user or take alternative actions.
+    return {
+      success: false,
+      message: "Enter your Coursera Auth Token",
+    };
+  }
+
   if (!csrfToken || !courseSlug) {
     console.error("CSRF Token or Course Slug not found");
     // Handle the error appropriately, e.g., show an error message to the user or take alternative actions.
