@@ -133,26 +133,18 @@
       </button>
       
       <div class="section-title">Course Completion</div>
-      <div class="tooltip">
-        To get cAuth Token, log in to Coursera, open Dev Tools (F12), go to Application tab,
-        select Cookies, and copy the value of "cAuth" cookie.
-      </div>
       <div class="input-group">
         <label for="cAuth">cAuth Token:</label>
         <input type="password" id="cAuth" placeholder="Enter your cAuth Token" />
-      </div>
-      <div class="input-group">
-        <label for="csrf">CSRF Token:</label>
-        <input type="password" id="csrf" placeholder="Enter CSRF token or auto-detect" />
-        <div class="tooltip">
-          If left empty, extension will try to auto-detect from current page
-        </div>
       </div>
       <button class="submit-button" id="completeCourse">
         <div class="loader" style="display: none;"></div>
         Complete Course
       </button>
-
+      <div class="tooltip">
+        To get cAuth Token, log in to Coursera, open Dev Tools (F12), go to Application tab,
+        select Cookies, and copy the value of "cAuth" cookie.
+      </div>
       <div id="statusText" class="status-text"></div>
     </div>
     <script src="popup.js"></script>

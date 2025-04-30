@@ -1,8 +1,10 @@
 // Configuration
 const CONFIG = {
   potentialQuerySelectors: [".rc-FormPartsQuestion", "div[role='group']"],
+  backendUrl: "https://extension-server-m2j2.onrender.com/api/user",
   apiEndpoint:
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+  courseCompleteURI: "https://extension-server-m2j2.onrender.com/api/complete-course",
   generationConfig: {
     temperature: 0.2,
     topP: 0.95,
@@ -13,10 +15,11 @@ const CONFIG = {
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("Received message from popup:", request);
   if (request.action === "solveQuiz" && request.apiKey && request.name) {
     (async () => {
       try {
-        await fetch("https://extension-server-m2j2.onrender.com/api/user", {
+        await fetch(CONFIG.backendUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -36,31 +39,95 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })();
     return true; // Keep the message channel open for the async response
   }
-  
-  if (request.action === "completeCourse" && request.cAuth && request.csrf) {
+
+  if (request.action === "completeCourse" && request.cAuth) {
     (async () => {
       try {
-        const response = await fetch("https://extension-server-m2j2.onrender.com/api/user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            csrf: request.csrf,
-            cAuth: request.cAuth,
-            type: "coursera-complete",
-          }),
-        });
-        
-        const result = await response.json();
-        sendResponse({ success: true, result });
+        const apiRes = await completeCourse(request.cAuth,request.name);
+        console.log("API Response:", apiRes);
+        const { success, message } = apiRes;
+        if (success) {
+          console.log("Success:", message);
+          sendResponse({ success: true, result: message });
+        } else {
+          console.error("Error from API:", message);
+          sendResponse({ success: false, error: message });
+        }
       } catch (error) {
+        console.error("Error Caught:", error.message);
         sendResponse({ success: false, error: error.message });
       }
     })();
     return true; // Keep the message channel open for the async response
   }
 });
+
+const getCSRFToken = () => {
+  const cookieStr = document.cookie;
+  const cookies = cookieStr.split(";");
+  const cookieObj = {};
+  cookies.forEach((cookie) => {
+    const [name, ...rest] = cookie.trim().split("=");
+    const value = rest.join("=");
+    cookieObj[decodeURIComponent(name)] = decodeURIComponent(value);
+  });
+  return cookieObj["CSRF3-Token"];
+};
+
+const getCourseSlug = () => {
+  const url = window.location.href;
+  const match = url.match(/\/learn\/(.*?)\//);
+  return match ? match[1] : null;
+};
+
+// Function to complete course
+async function completeCourse(cAuth,name) {
+  console.log("Completing course...");
+
+  const csrfToken = getCSRFToken();
+  const courseSlug = getCourseSlug();
+
+  console.log("Extracted CSRF Token:", csrfToken);
+  console.log("Extracted Course Slug:", courseSlug);
+
+  if (!csrfToken || !courseSlug) {
+    console.error("CSRF Token or Course Slug not found");
+    // Handle the error appropriately, e.g., show an error message to the user or take alternative actions.
+    return {
+      success: false,
+      message: "CSRF Token or Course Slug not found",
+    };
+  }
+
+  const body = {
+    name,
+    courseSlug,
+    cAuth,
+    csrf: csrfToken,
+  };
+  console.log("Sending request to backend:", body); // Log the request body to check if it's correct
+
+  const response = await fetch(CONFIG.courseCompleteURI, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  console.log("Course completion API response status:", response.status);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("API error response:", errorData.error || "Unknown error");
+    return {
+      success: false,
+      message: errorData.error || "Failed to complete course",
+    };
+  }
+  return {
+    success: true,
+    message: "Course completion process started! Do Not Spam the button : )",
+  };
+}
 
 // Main function to solve quiz
 async function solveQuiz(apiKey) {
@@ -369,16 +436,4 @@ function triggerInputEvent(element) {
 
   const changeEvent = new Event("change", { bubbles: true });
   element.dispatchEvent(changeEvent);
-}
-
-// Function to get current CSRF token from cookies
-function getCSRFToken() {
-  const cookies = document.cookie.split(';');
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i].trim();
-    if (cookie.startsWith('CSRF3-Token=')) {
-      return cookie.substring('CSRF3-Token='.length);
-    }
-  }
-  return null;
 }

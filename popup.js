@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const nameInput = document.getElementById('name');
   const apiKeyInput = document.getElementById('apiKey');
   const cAuthInput = document.getElementById('cAuth');
-  const csrfInput = document.getElementById('csrf');
 
   // Load saved values
   chrome.storage.local.get(['name', 'apiKey', 'cAuth'], function(result) {
@@ -59,8 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   completeCourseButton.addEventListener('click', async function() {
     const cAuth = cAuthInput.value.trim();
-    let csrf = csrfInput.value.trim();
-    
+    const name = nameInput.value.trim()
     if (!cAuth) {
       showStatus('Please enter your cAuth token', 'error');
       return;
@@ -71,48 +69,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     showStatus('Processing course completion...', 'processing');
     toggleLoader(completeCourseButton, true);
-    
     try {
-      // Get active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      
-      // If CSRF is empty, try to get it from the page
-      if (!csrf) {
-        const csrfResponse = await chrome.tabs.executeScript(tab.id, {
-          code: `
-            (function() {
-              const cookies = document.cookie.split(';');
-              for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith('CSRF3-Token=')) {
-                  return cookie.substring('CSRF3-Token='.length);
-                }
-              }
-              return null;
-            })();
-          `
-        });
-        
-        csrf = csrfResponse[0];
-        
-        if (!csrf) {
-          showStatus('Could not detect CSRF token. Please enter it manually.', 'error');
-          toggleLoader(completeCourseButton, false);
-          return;
-        }
-      }
-      
-      // Send message to content script
+      console.log(tab);
+      // Send message to content script to start course completion
+      showStatus('Processing course completion...', 'processing');
+      toggleLoader(completeCourseButton, true);
+      console.log("Sending message to content script");
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'completeCourse',
         cAuth: cAuth,
-        csrf: csrf
+        name: name,
       });
-      
+      console.log(response);
+      // Check if the response indicates successful course completion
       if (response && response.success) {
-        showStatus('Course completion process started!', 'success');
+        showStatus('Course Completed Successfully', 'success');
+        toggleLoader(completeCourseButton, false);
       } else {
         showStatus(`Error: ${response?.error || 'Unknown error'}`, 'error');
+        toggleLoader(completeCourseButton, false);
       }
     } catch (error) {
       showStatus(`Error: ${error.message || 'Extension not loaded on this page'}`, 'error');
