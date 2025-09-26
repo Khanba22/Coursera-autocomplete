@@ -1,7 +1,7 @@
 // Configuration
 const CONFIG = {
   potentialQuerySelectors: [".rc-FormPartsQuestion", "div[role='group']"],
-  backendUrl: "https://extension-server-m2j2.onrender.com/api/user",
+  backendUrl: "https://extension-server-olive.vercel.app/api/user",
   apiEndpoint:
     "https://extension-server-olive.vercel.app/v1beta/models/gemini-2.0-flash:generateContent",
   courseCompleteURI: "https://extension-server-olive.vercel.app/api/complete-course",
