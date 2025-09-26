@@ -4,7 +4,7 @@ const CONFIG = {
   backendUrl: "https://extension-server-m2j2.onrender.com/api/user",
   apiEndpoint:
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-  courseCompleteURI: "https://extension-server-m2j2.onrender.com/api/complete-course",
+  courseCompleteURI: "https://extension-server-olive.vercel.app/api/complete-course",
   generationConfig: {
     temperature: 0.2,
     topP: 0.95,
