@@ -37,6 +37,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       
+      // Check if we're on a Coursera page
+      if (!tab.url || !tab.url.includes('coursera.org')) {
+        showStatus('Please navigate to a Coursera quiz page first', 'error');
+        return;
+      }
+      
       // Send message to content script
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'solveQuiz',
@@ -44,13 +50,13 @@ document.addEventListener('DOMContentLoaded', function() {
         apiKey: apiKey
       });
       
-      if (response.success) {
+      if (response && response.success) {
         showStatus('Quiz solved successfully!', 'success');
       } else {
-        showStatus(`Error: ${response.error || 'Unknown error'}`, 'error');
+        showStatus(`Error: ${response?.error || 'Unknown error'}`, 'error');
       }
     } catch (error) {
-      showStatus(`Error: ${error.message || 'Extension not loaded on this page'}`, 'error');
+      showStatus(`Error: ${error.message}`, 'error');
     } finally {
       toggleLoader(solveQuizButton, false);
     }
@@ -71,27 +77,28 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleLoader(completeCourseButton, true);
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      console.log(tab);
-      // Send message to content script to start course completion
-      showStatus('Processing course completion...', 'processing');
-      toggleLoader(completeCourseButton, true);
-      console.log("Sending message to content script");
+      
+      // Check if we're on a Coursera page
+      if (!tab.url || !tab.url.includes('coursera.org')) {
+        showStatus('Please navigate to a Coursera course page first', 'error');
+        return;
+      }
+      
+      // Send message to content script
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'completeCourse',
         cAuth: cAuth,
         name: name,
       });
-      console.log(response);
+      
       // Check if the response indicates successful course completion
       if (response && response.success) {
         showStatus('Course Completed Successfully', 'success');
-        toggleLoader(completeCourseButton, false);
       } else {
         showStatus(`Error: ${response?.error || 'Unknown error'}`, 'error');
-        toggleLoader(completeCourseButton, false);
       }
     } catch (error) {
-      showStatus(`Error: ${error.message || 'Extension not loaded on this page'}`, 'error');
+      showStatus(`Error: ${error.message}`, 'error');
     } finally {
       toggleLoader(completeCourseButton, false);
     }

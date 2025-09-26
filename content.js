@@ -3,7 +3,7 @@ const CONFIG = {
   potentialQuerySelectors: [".rc-FormPartsQuestion", "div[role='group']"],
   backendUrl: "https://extension-server-olive.vercel.app/api/user",
   apiEndpoint:
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent",
   courseCompleteURI: "https://extension-server-olive.vercel.app/api/complete-course",
   generationConfig: {
     temperature: 0.2,
